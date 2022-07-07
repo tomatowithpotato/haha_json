@@ -1,8 +1,8 @@
-SOURCE_DIR = ../cppjson
+SOURCE_DIR = ../haha_json
 
 SOURCE_FILES = $(wildcard $(SOURCE_DIR)/*.cpp)
 
-INCLUDE_DIR = -I ../cppjson
+INCLUDE_DIR = -I ../haha_json
 
 BINARY_DIR = ../bin
 
