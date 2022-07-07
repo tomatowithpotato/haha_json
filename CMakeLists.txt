@@ -68,15 +68,15 @@ set(
 
 # MESSAGE( STATUS "LIB_SRC = ${LIB_SRC}.")
 
-add_library(haha_web SHARED ${LIB_SRC})                                # SHARED 指示生成so文件 即动态链接库
+add_library(haha_json SHARED ${LIB_SRC})                                # SHARED 指示生成so文件 即动态链接库
 
 set(
     ALL_LIBS
-    haha_web
+    haha_json
     pthread
     uuid
 )
 
 add_executable(jsonParseTest.out tests/test_json.cpp)             # 设置要生成可执行文件的代码
-add_dependencies(jsonParseTest.out haha_web)                               # 设置依赖关系
+add_dependencies(jsonParseTest.out haha_json)                               # 设置依赖关系
 target_link_libraries(jsonParseTest.out ${ALL_LIBS})                   # 设置要链接的库
