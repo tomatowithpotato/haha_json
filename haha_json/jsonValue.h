@@ -13,7 +13,7 @@ namespace haha
 namespace json
 {
 
-enum class JsonType { Object, Array, String, Number, Boolean, Null };
+enum class JsonType { UNKOWN, Object, Array, String, Number, Boolean, Null };
 
 typedef decltype(nullptr) NullType;
 
@@ -145,7 +145,7 @@ public:
         std::string res = "[";
         auto fmt = format.formatType();
 
-        for(int i = 0; i < arr_.size(); ++i){
+        for(size_t i = 0; i < arr_.size(); ++i){
             if(fmt == JsonFormatType::NEWLINE){
                 res += '\n';
                 res += std::string(depth+1, '\t');
@@ -231,8 +231,8 @@ public:
             res += ':';
             res += fmt == JsonFormatType::RAW ? "" : " ";
             res += v->toString(format, depth+1);
-            res += (cnt + 1 < map_.size()) ? "," : "";
-            res += (cnt + 1 < map_.size() && fmt == JsonFormatType::SPACE) ? " " : "";
+            res += (cnt + 1 < (int)map_.size()) ? "," : "";
+            res += (cnt + 1 < (int)map_.size() && fmt == JsonFormatType::SPACE) ? " " : "";
             ++cnt;
         }
         res += fmt == JsonFormatType::NEWLINE && map_.size() ? '\n' + std::string(depth, '\t') : "";

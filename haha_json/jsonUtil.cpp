@@ -226,5 +226,5 @@ std::string util::utf16_literal_to_utf8(std::string_view &str)
         output[0] = (unsigned char)(codepoint & 0x7F);
     }
 
-    return std::move(output);
+    return output;
 }

@@ -32,7 +32,7 @@ public:
     bool fromString(const std::string &str);
     bool fromString(std::string_view str);
 
-    std::string toString() const { return obj_->toString(); }
+    std::string toString() const { return obj_ ? obj_->toString() : "---failed parse---"; }
 
     bool fromFile(const char* filePath);
     bool fromFile(const std::string &filePath);
@@ -40,7 +40,7 @@ public:
     bool toFile(const char* filePath);
     bool toFile(const std::string &filePath);
 
-    JsonType getType() const { return obj_->getType(); }
+    JsonType getType() const { return obj_ ? obj_->getType() : JsonType::UNKOWN; }
 
     template<typename T>
     std::shared_ptr<T> getValuePtr() const { return std::static_pointer_cast<T>(obj_); }

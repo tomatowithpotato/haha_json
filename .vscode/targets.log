@@ -1,4 +1,6 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -6,7 +8,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jul  7 10:26:26 2022
+# Make data base, printed on Thu Jul  7 12:32:45 2022
 
 # Variables
 
@@ -65,7 +67,7 @@ CONDA_PREFIX = /home/lighthouse/anaconda3
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/1001/vscode-ipc-2b30ec50-b5b8-40ca-bc88-d6088bab379a.sock
+VSCODE_IPC_HOOK_CLI = /run/user/1001/vscode-ipc-b3c72433-19f7-4d1b-b1ce-287233d12b91.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -187,9 +189,9 @@ _CE_CONDA =
 
 # Directories
 
-# . (device 64514, inode 657793): 8 files, no impossibilities.
+# . (device 64514, inode 657793): 9 files, no impossibilities.
 
-# 8 files, no impossibilities in 1 directories.
+# 9 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -239,14 +241,12 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 16 / storage = 134 B / avg = 8 B
-# current buf: size = 8162 B / used = 134 B / count = 16 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 17 / storage = 144 B / avg = 8 B
+# current buf: size = 8162 B / used = 144 B / count = 17 / avg = 8 B
 
-# strcache performance: lookups = 19 / hit rate = 15%
+# strcache performance: lookups = 20 / hit rate = 15%
 # hash-table stats:
-# Load=16/8192=0%, Rehash=0, Collisions=1/19=5%
-# Finished Make data base on Thu Jul  7 10:26:26 2022
+# Load=17/8192=0%, Rehash=0, Collisions=1/20=5%
+# Finished Make data base on Thu Jul  7 12:32:45 2022
 
  
-make: *** No rule to make target 'all'.  Stop.
-

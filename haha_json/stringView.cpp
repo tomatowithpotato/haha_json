@@ -10,7 +10,7 @@ void get_next(StringView t, std::vector<int> &next)
 {
     int i = 0, j = -1;
     next[0] = -1;
-    while (i < t.size() - 1)
+    while (i < (int)t.size() - 1)
     {
         if (j == -1 || t[i] == t[j])
         {
@@ -30,7 +30,7 @@ int KMP_search(const StringView &s, const StringView &t)
     get_next(t, next);
     // 此处涉及-1和unsigned比较
     // 由于signed int的负数最高位是1，转换成unsigned int之后，就会变成一个很大的unsigned int型正数
-    while (j == -1 || (i < s.size() && j < t.size())) 
+    while (j == -1 || (i < (int)s.size() && j < (int)t.size())) 
     {
         if (j == -1 || s[i] == t[j])
         {
@@ -42,7 +42,7 @@ int KMP_search(const StringView &s, const StringView &t)
             j = next[j];
         }
     }
-    if (j == t.size())
+    if (j == (int)t.size())
         return i - j;
     else
         return -1;
