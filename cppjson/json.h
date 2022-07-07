@@ -26,17 +26,24 @@ JsonObject::ptr parse_object(std::string_view &str);
 
 class Json{
 public:
+    typedef std::shared_ptr<Json> ptr;
+
     bool fromString(const char *string);
     bool fromString(const std::string &str);
     bool fromString(std::string_view str);
 
-    std::string toString();
+    std::string toString() const { return obj_->toString(); }
 
     bool fromFile(const char* filePath);
     bool fromFile(const std::string &filePath);
 
     bool toFile(const char* filePath);
     bool toFile(const std::string &filePath);
+
+    JsonType getType() const { return obj_->getType(); }
+
+    template<typename T>
+    std::shared_ptr<T> getValuePtr() const { return std::static_pointer_cast<T>(obj_); }
 
 private:
     std::string_view view_;

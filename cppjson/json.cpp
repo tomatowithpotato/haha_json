@@ -6,7 +6,7 @@ namespace haha
 namespace json
 {
 
-/* ---------------------------------------------common--------------------------------------------- */
+/* ---------------------------------------------parse--------------------------------------------- */
 
 JsonString::ptr parse_string(std::string_view &str){
     if(str[0] != '"')return nullptr;
@@ -112,6 +112,11 @@ JsonArray::ptr parse_array(std::string_view &str){
 
     JsonArray::ptr arr(std::make_shared<JsonArray>());
 
+    if(!str.empty() && str[0] == ']'){
+        str.remove_prefix(1);
+        return arr;
+    }
+
     auto check_func = [&str](){
         if(str[0] == ','){
             str.remove_prefix(1);
@@ -145,6 +150,11 @@ JsonObject::ptr parse_object(std::string_view &str){
     str.remove_prefix(1);
 
     JsonObject::ptr obj(std::make_shared<JsonObject>());
+
+    if(!str.empty() && str[0] == '}'){
+        str.remove_prefix(1);
+        return obj;
+    }
 
     auto check_func = [&str](){
         if(str[0] == ','){
@@ -276,6 +286,5 @@ bool Json::fromFile(const std::string &string){
 }
 
 } // namespace json
-
 
 }

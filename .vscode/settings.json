@@ -59,6 +59,8 @@
         "hash_set": "cpp",
         "list": "cpp",
         "unordered_set": "cpp",
-        "bitset": "cpp"
+        "bitset": "cpp",
+        "codecvt": "cpp",
+        "iomanip": "cpp"
     }
 }

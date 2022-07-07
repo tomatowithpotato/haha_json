@@ -71,6 +71,10 @@ enum class JSON_TAG{
     JSON_STRING_TOKEN = '"',
 };
 
+inline std::string repeat_char(size_t cnt, char c){ 
+    return std::string(cnt, c);
+}
+
 const char* skip_CtrlAndSpace(const char* str, size_t length, size_t offset=0);
 std::string_view skip_CtrlAndSpace(std::string_view str, size_t offset=0);
 
