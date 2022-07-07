@@ -1,7 +1,35 @@
+# HAHAWebServer
+
+一个用c++17实现的json解析库，还在更新中
+
+## 未来的计划：
+
+* 提供更易用的API
+
+* 性能优化
+
+
+## 快速使用：
+
+编译
+```shell
+cd 当前目录
+./build_release.sh
+```
+运行
+```shell
+cd 当前目录
+./run_httpServer_release.sh
+```
+
+
+## 代码示例
+
+代码在tests文件夹下的test_parse.cc
+```c++
 #include <string>
 #include <iostream>
 #include "json.h"
-
 
 int main(){
     std::string str = "{\"check\": 123.5e10, \"2893h\":\"ok\", \"arr\": [\"sd\", null]}";
@@ -34,3 +62,4 @@ int main(){
 
     return 0;
 }
+```

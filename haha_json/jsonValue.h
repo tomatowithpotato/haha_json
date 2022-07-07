@@ -88,11 +88,19 @@ private:
 class JsonNumber : public JsonValue{
 public:
     typedef std::shared_ptr<JsonNumber> ptr;
-    explicit JsonNumber(int val):JsonValue(JsonType::Number),integer_(val),double_(static_cast<double>(val)){}
-    explicit JsonNumber(double val):JsonValue(JsonType::Number),integer_(static_cast<int>(val)),double_(val){}
+    explicit JsonNumber(int val)
+        :JsonValue(JsonType::Number),integer_(val),double_(static_cast<double>(val))
+    {
+    }
+    explicit JsonNumber(double val)
+        :JsonValue(JsonType::Number),integer_(static_cast<int>(val)),double_(val)
+    {
+    }
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override { 
         return std::to_string(double_); 
     }
+    int toInt() { return integer_; }
+    double toDouble() { return double_; }
 private:
     int integer_;
     double double_;

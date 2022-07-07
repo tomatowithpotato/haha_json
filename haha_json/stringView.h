@@ -11,6 +11,8 @@
 
 namespace haha{
 
+namespace json{
+
 class StringView{
 
 friend std::ostream& operator<<(std::ostream& ostream, StringView view);
@@ -107,7 +109,7 @@ public:
 
     int compare(size_t start, size_t len, const char *str){
         if(begin_ + len > end_){
-            throw std::out_of_range("StringView substr out of range");
+            throw std::out_of_range("len out of range");
         }
         return strncmp(begin_+start, str, len);
     }
@@ -117,7 +119,7 @@ public:
 
     const char& operator [](size_t pos) const{
         if(begin_ + pos > end_){
-            throw std::out_of_range("StringView substr out of range");
+            throw std::out_of_range("index out of range");
         }
         return begin_[pos];
     }
@@ -133,6 +135,8 @@ inline std::ostream& operator<<(std::ostream& ostream, StringView view){
         ostream << *i;
     }
     return ostream;
+}
+
 }
 
 }

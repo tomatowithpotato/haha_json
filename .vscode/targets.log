@@ -1,6 +1,4 @@
 make all --print-data-base --no-builtin-variables --no-builtin-rules --question
-make: *** No rule to make target 'all'.  Stop.
-
 # GNU Make 4.2.1
 # Built for x86_64-pc-linux-gnu
 # Copyright (C) 1988-2016 Free Software Foundation, Inc.
@@ -8,7 +6,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jul  7 10:17:21 2022
+# Make data base, printed on Thu Jul  7 10:26:26 2022
 
 # Variables
 
@@ -35,7 +33,7 @@ VSCODE_LOG_NATIVE = false
 # default
 MAKE_VERSION := 4.2.1
 # makefile
-CURDIR := /home/lighthouse/MyCode/cppjson
+CURDIR := /home/lighthouse/MyCode/haha_json
 # makefile
 SHELL = /bin/sh
 # environment
@@ -67,7 +65,7 @@ CONDA_PREFIX = /home/lighthouse/anaconda3
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/1001/vscode-ipc-9b26a2b4-efb5-4e6f-9806-ffbd6ddec4f1.sock
+VSCODE_IPC_HOOK_CLI = /run/user/1001/vscode-ipc-2b30ec50-b5b8-40ca-bc88-d6088bab379a.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -79,7 +77,7 @@ CONDA_EXE = /home/lighthouse/anaconda3/bin/conda
 # environment
 VSCODE_PIPE_LOGGING = true
 # environment
-PWD = /home/lighthouse/MyCode/cppjson
+PWD = /home/lighthouse/MyCode/haha_json
 # default
 .LOADED := 
 # automatic
@@ -215,7 +213,6 @@ Makefile:
 
 # Not a target:
 makefile:
- 
 #  Implicit rule search has been done.
 #  File does not exist.
 #  File has been updated.
@@ -248,6 +245,8 @@ GNUmakefile:
 # strcache performance: lookups = 19 / hit rate = 15%
 # hash-table stats:
 # Load=16/8192=0%, Rehash=0, Collisions=1/19=5%
-# Finished Make data base on Thu Jul  7 10:17:21 2022
+# Finished Make data base on Thu Jul  7 10:26:26 2022
 
  
+make: *** No rule to make target 'all'.  Stop.
+

@@ -4,6 +4,8 @@
 namespace haha
 {
 
+namespace json{
+
 void get_next(StringView t, std::vector<int> &next)
 {
     int i = 0, j = -1;
@@ -67,6 +69,8 @@ size_t StringView::find(const char *str, size_t pos){
         return std::search(begin_+pos, end_, str, str+len) - begin_;
     }
     return KMP_search(*this, StringView(str, len));
+}
+
 }
     
 } // namespace haha
