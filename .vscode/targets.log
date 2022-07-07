@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jul  7 12:32:45 2022
+# Make data base, printed on Thu Jul  7 20:05:52 2022
 
 # Variables
 
@@ -67,7 +67,7 @@ CONDA_PREFIX = /home/lighthouse/anaconda3
 # environment
 VSCODE_LOG_STACK = false
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/1001/vscode-ipc-b3c72433-19f7-4d1b-b1ce-287233d12b91.sock
+VSCODE_IPC_HOOK_CLI = /run/user/1001/vscode-ipc-b2e79c48-70c6-4479-8d1d-09946cb6b9d6.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -189,9 +189,9 @@ _CE_CONDA =
 
 # Directories
 
-# . (device 64514, inode 657793): 9 files, no impossibilities.
+# . (device 64514, inode 657793): 16 files, no impossibilities.
 
-# 9 files, no impossibilities in 1 directories.
+# 16 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -241,12 +241,12 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 17 / storage = 144 B / avg = 8 B
-# current buf: size = 8162 B / used = 144 B / count = 17 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 24 / storage = 247 B / avg = 10 B
+# current buf: size = 8162 B / used = 247 B / count = 24 / avg = 10 B
 
-# strcache performance: lookups = 20 / hit rate = 15%
+# strcache performance: lookups = 27 / hit rate = 11%
 # hash-table stats:
-# Load=17/8192=0%, Rehash=0, Collisions=1/20=5%
-# Finished Make data base on Thu Jul  7 12:32:45 2022
+# Load=24/8192=0%, Rehash=0, Collisions=1/27=4%
+# Finished Make data base on Thu Jul  7 20:05:52 2022
 
  

@@ -12,7 +12,7 @@
             "args": [],
             "stopAtEntry": false,
             // "cwd": "${fileDirname}",
-            "cwd": "${workspaceFolder}/bin",
+            "cwd": "${workspaceFolder}/bin/debug",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
