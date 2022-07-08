@@ -10,28 +10,34 @@ namespace json
 
 /* ---------------------------------------------type conversion--------------------------------------------- */
 
+/* ====================================pointer to pointer==================================== */
 template<>
-std::shared_ptr<JsonString> To(JsonValue::ptr source){ 
+JsonString::ptr type_cast(JsonValueBase::ptr source){ 
     return std::static_pointer_cast<JsonString>(source);
 }
 
 template<>
-std::shared_ptr<JsonBoolean> To(JsonValue::ptr source){ 
+JsonBoolean::ptr type_cast(JsonValueBase::ptr source){ 
     return std::static_pointer_cast<JsonBoolean>(source);
 }
 
 template<>
-std::shared_ptr<JsonNumber> To(JsonValue::ptr source){ 
+JsonNumber::ptr type_cast(JsonValueBase::ptr source){ 
     return std::static_pointer_cast<JsonNumber>(source);
 }
 
 template<>
-std::shared_ptr<JsonArray> To(JsonValue::ptr source){ 
+JsonNull::ptr type_cast(JsonValueBase::ptr source){ 
+    return std::static_pointer_cast<JsonNull>(source);
+}
+
+template<>
+JsonArray::ptr type_cast(JsonValueBase::ptr source){ 
     return std::static_pointer_cast<JsonArray>(source);
 }
 
 template<>
-std::shared_ptr<JsonObject> To(JsonValue::ptr source){ 
+JsonObject::ptr type_cast(JsonValueBase::ptr source){ 
     return std::static_pointer_cast<JsonObject>(source);
 }
 

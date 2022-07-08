@@ -14,11 +14,11 @@ namespace haha
 namespace json
 {
 
-JsonValue::ptr parse(const char *str);
-JsonValue::ptr parse(const std::string &str);
+JsonValueBase::ptr parse(const char *str);
+JsonValueBase::ptr parse(const std::string &str);
 
-JsonValue::ptr parse(std::string_view &str);
-JsonValue::ptr parse_value(std::string_view &str);
+JsonValueBase::ptr parse(std::string_view &str);
+JsonValueBase::ptr parse_value(std::string_view &str);
 JsonString::ptr parse_string(std::string_view &str);
 JsonNumber::ptr parse_number(std::string_view &str);
 JsonArray::ptr parse_array(std::string_view &str);
@@ -47,7 +47,7 @@ public:
 
 private:
     std::string_view view_;
-    JsonValue::ptr obj_;
+    JsonValueBase::ptr obj_;
     JsonReader reader_;
 };
 

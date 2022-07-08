@@ -214,20 +214,20 @@ JsonObject::ptr parse_object(std::string_view &str){
 }
 
 
-JsonValue::ptr parse_value(std::string_view &str){
+JsonValueBase::ptr parse_value(std::string_view &str){
     if(str.empty())return nullptr;
 
     if(str.size() && (str[0] == '{')){
-        return std::static_pointer_cast<JsonValue>(parse_object(str));
+        return std::static_pointer_cast<JsonValueBase>(parse_object(str));
     }
     if(str.size() && (str[0] == '[')){
-        return std::static_pointer_cast<JsonValue>(parse_array(str));
+        return std::static_pointer_cast<JsonValueBase>(parse_array(str));
     }
     if(str.size() && (int)str[0] == '"'){
-        return std::static_pointer_cast<JsonValue>(parse_string(str));
+        return std::static_pointer_cast<JsonValueBase>(parse_string(str));
     }
     if(str.size() && (str[0] == '-' || isdigit(str[0]))){
-        return std::static_pointer_cast<JsonValue>(parse_number(str));
+        return std::static_pointer_cast<JsonValueBase>(parse_number(str));
     }
     if(str.size() >= 4 && str.compare(0, 4, "null") == 0){
         str.remove_prefix(4);
@@ -246,19 +246,19 @@ JsonValue::ptr parse_value(std::string_view &str){
     }
 }
 
-JsonValue::ptr parse(std::string_view &str){
+JsonValueBase::ptr parse(std::string_view &str){
     str = util::skip_utf8_bom(str);
     str = util::skip_CtrlAndSpace(str);
     auto obj = parse_value(str);
     return obj;
 }
 
-JsonValue::ptr parse(const char *str){
+JsonValueBase::ptr parse(const char *str){
     std::string_view str_view = str;
     return parse(str_view);
 }
 
-JsonValue::ptr parse(const std::string &str){
+JsonValueBase::ptr parse(const std::string &str){
     std::string_view str_view = str;
     return parse(str_view);
 }
