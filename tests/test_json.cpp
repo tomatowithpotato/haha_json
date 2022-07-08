@@ -2,11 +2,12 @@
 #include <iostream>
 #include "json.h"
 
+namespace JSON = haha::json;
 
 int main(){
     std::string str = "{\"check\": 123.5e10, \"2893h\":\"ok\", \"arr\": [\"sd\", null]}";
     std::string str1 = "{\"\": 0, \"\\u7814\": 1, \"\\u7a76\": 2, \"\\u53d1\": 3, \"\\u73b0\": 4, \"\\u7ec6\": 5, \"\\u80de\": 6}";
-    haha::json::Json json;
+    JSON::Json json;
 
     bool ok = true;
     ok = json.fromString(str1);
@@ -23,19 +24,13 @@ int main(){
 
     std::cout << json.toString() << std::endl;
 
-    haha::json::JsonObject::ptr obj;
-    if(json.getType() == haha::json::JsonType::Object){
-        obj = json.getValuePtr<haha::json::JsonObject>();
+    JSON::JsonObject::ptr obj;
+    if(json.getType() == JSON::JsonType::Object){
+        obj = json.getValuePtr<JSON::JsonObject>();
     }
 
-    for(const auto &[k,v] : *obj){
-        std::cout << haha::json::getJsonTypeName(k.getType()) << ": "
-            << haha::json::getJsonTypeName(v->getType())
-            << std::endl;
-    }
-
-    haha::json::PrintFormatter fmt{
-        haha::json::JsonFormatType::NEWLINE,
+    JSON::PrintFormatter fmt{
+        JSON::JsonFormatType::NEWLINE,
         1,
         true
     };
@@ -47,16 +42,16 @@ int main(){
     std::cout << std::string(60, '*') << std::endl;
 
     /* 反序列化 */
-    haha::json::Json json1;
+    JSON::Json json1;
     ok = json1.fromString(output);
     std::cout << ok << std::endl;
-    haha::json::JsonObject::ptr obj1;
-    if(json1.getType() == haha::json::JsonType::Object){
-        obj1 = json.getValuePtr<haha::json::JsonObject>();
+    JSON::JsonObject::ptr obj1;
+    if(json1.getType() == JSON::JsonType::Object){
+        obj1 = json.getValuePtr<JSON::JsonObject>();
     }
 
-    haha::json::PrintFormatter fmt1{
-        haha::json::JsonFormatType::NEWLINE,
+    JSON::PrintFormatter fmt1{
+        JSON::JsonFormatType::NEWLINE,
         1,
         false
     };

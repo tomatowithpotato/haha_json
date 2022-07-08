@@ -53,6 +53,10 @@ public:
     typedef std::shared_ptr<JsonValueBase> ptr;
     explicit JsonValueBase(JsonType type):type_(type){}
     JsonType getType() const { return type_; }
+    // 是否为标量：字符串、数字、bool、null
+    bool isScalar() const { return !isIterable(); }
+    // 可迭代类型：对象、数组
+    bool isIterable() const { return type_ == JsonType::Object || type_ == JsonType::Array; }
     virtual std::string toString (const PrintFormatter &format = PrintFormatter(), int depth = 0) const { return ""; }
 
 private:
