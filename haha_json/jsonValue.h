@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <vector>
+#include <variant>
 #include <map>
 #include "jsonUtil.h"
 
@@ -16,6 +17,11 @@ namespace json
 enum class JsonType { UNKOWN, Object, Array, String, Number, Boolean, Null };
 
 typedef decltype(nullptr) NullType;
+
+struct Number{
+    int integer_;
+    double double_;
+};
 
 // template<typename T> JsonType __toJsonType();
 // // 下边的要写在源文件里头
@@ -51,7 +57,11 @@ private:
 class JsonValueBase{
 public:
     typedef std::shared_ptr<JsonValueBase> ptr;
-    explicit JsonValueBase(JsonType type):type_(type){}
+    explicit JsonValueBase(JsonType type = JsonType::UNKOWN):type_(type){}
+    virtual ~JsonValueBase() {}
+
+    JsonValueBase(const JsonValueBase& jsvb);
+
     JsonType getType() const { return type_; }
     // 是否为标量：字符串、数字、bool、null
     bool isScalar() const { return !isIterable(); }
@@ -59,21 +69,30 @@ public:
     bool isIterable() const { return type_ == JsonType::Object || type_ == JsonType::Array; }
     virtual std::string toString (const PrintFormatter &format = PrintFormatter(), int depth = 0) const { return ""; }
 
-private:
+protected:
+    JsonValueBase::ptr copyFrom(JsonValueBase::ptr src);
+
+protected:
     JsonType type_;
-    // std::string valueString_;
-    // int valueInt_;
-    // double valueDouble_;
+
+protected:
+    std::variant<bool,decltype(nullptr),
+                Number,
+                std::string,
+                std::vector<JsonValueBase::ptr>,
+                std::map<JsonValueBase::ptr, JsonValueBase::ptr>> val_ = nullptr;
 };
 
 template<typename T>
 class JsonValue : public JsonValueBase{
 public:
+    typedef T ValueType;
     JsonValue(JsonType type, const T& val)
-        :JsonValueBase(type), val_(val){}
-    virtual const T& getValue() const { return val_; }
+        :JsonValueBase(type){ val_ = val; }
+    JsonValue():JsonValueBase(){}
+    const T& getValue() const { return std::get<ValueType>(val_); }
 protected:
-    T val_;
+    T& getValue() { return std::get<ValueType>(val_); }
 };
 
 
@@ -81,9 +100,10 @@ class JsonString : public JsonValue<std::string>{
 public:
     typedef std::shared_ptr<JsonString> ptr;
     explicit JsonString(const std::string &str):JsonValue(JsonType::String, str){}
+    // JsonString(const JsonString& another);
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override;
     bool operator <(const JsonString &rhs) const{
-        return val_ < rhs.val_;
+        return getValue() < rhs.getValue();
     }
 };
 
@@ -92,14 +112,8 @@ public:
     typedef std::shared_ptr<JsonBoolean> ptr;
     explicit JsonBoolean(bool val):JsonValue(JsonType::Boolean, val){}
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override { 
-        return val_ ? "true" : "false";
+        return getValue() ? "true" : "false";
     }
-};
-
-
-struct Number{
-    int integer_;
-    double double_;
 };
 
 
@@ -111,14 +125,14 @@ public:
     {
     }
     explicit JsonNumber(double val)
-        :JsonValue(JsonType::Number,{static_cast<int>(val), val})
+        :JsonValue(JsonType::Number, {static_cast<int>(val), val})
     {
     }
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override { 
-        return std::to_string(val_.double_); 
+        return std::to_string(getValue().double_); 
     }
-    int toInt() { return val_.integer_; }
-    double toDouble() { return val_.double_; }
+    int toInt() { return getValue().integer_; }
+    double toDouble() { return getValue().double_; }
 };
 
 
@@ -141,117 +155,123 @@ public:
     typedef std::shared_ptr<JsonArray> ptr;
 
     JsonArray() : JsonValue(JsonType::Array, Array()){}
+    JsonArray(const JsonArray &another);
 
-    ConstIterator begin() const { return val_.begin(); }
-    ConstIterator end() const { return val_.end(); }
-    Iterator begin() { return val_.begin(); }
-    Iterator end() { return val_.end(); }
+    ConstIterator begin() const { return getValue().begin(); }
+    ConstIterator end() const { return getValue().end(); }
+    Iterator begin() { return getValue().begin(); }
+    Iterator end() { return getValue().end(); }
 
-    size_t size() const { return val_.size(); }
-    bool empty() const { return val_.empty(); }
+    size_t size() const { return getValue().size(); }
+    bool empty() const { return getValue().empty(); }
 
-    void add(JsonValueBase::ptr val) { val_.emplace_back(val); }
-    void add(const std::string &str) { val_.emplace_back(std::make_shared<JsonString>(str)); }
-    void add(bool val) { val_.emplace_back(std::make_shared<JsonBoolean>(val)); }
-    void add(int val) { val_.emplace_back(std::make_shared<JsonNumber>(val)); }
-    void add(double val) { val_.emplace_back(std::make_shared<JsonNumber>(val)); }
-    void add() { val_.emplace_back(std::make_shared<JsonNull>()); }
+    void add(JsonValueBase::ptr val) { getValue().emplace_back(val); }
+    void add(const std::string &str) { getValue().emplace_back(std::make_shared<JsonString>(str)); }
+    void add(bool val) { getValue().emplace_back(std::make_shared<JsonBoolean>(val)); }
+    void add(int val) { getValue().emplace_back(std::make_shared<JsonNumber>(val)); }
+    void add(double val) { getValue().emplace_back(std::make_shared<JsonNumber>(val)); }
+    void add() { getValue().emplace_back(std::make_shared<JsonNull>()); }
 
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override {
         std::string res = "[";
         auto fmt = format.formatType();
 
-        for(size_t i = 0; i < val_.size(); ++i){
+        for(size_t i = 0; i < getValue().size(); ++i){
             if(fmt == JsonFormatType::NEWLINE){
                 res += '\n';
                 res += std::string(depth+1, '\t');
             }
-            res += val_[i]->toString(format, depth+1);
-            res += i+1 < val_.size() ? "," : "";
-            if(fmt == JsonFormatType::SPACE && i+1 < val_.size()){
+            res += getValue()[i]->toString(format, depth+1);
+            res += i+1 < getValue().size() ? "," : "";
+            if(fmt == JsonFormatType::SPACE && i+1 < getValue().size()){
                 res += ' ';
             }
         }
 
-        res += fmt == JsonFormatType::NEWLINE && val_.size() ? '\n' + std::string(depth, '\t') : "";
+        res += fmt == JsonFormatType::NEWLINE && getValue().size() ? '\n' + std::string(depth, '\t') : "";
         res += "]";
         return res;
     }
 };
 
 
-class JsonObject : public JsonValue<std::map<JsonString, JsonValueBase::ptr>>{
+class JsonObject : public JsonValue<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>{
 public:
-    typedef typename std::map<JsonString, JsonValueBase::ptr> Map;
+    typedef typename std::map<JsonValueBase::ptr, JsonValueBase::ptr> Map;
     typedef typename Map::iterator Iterator;
     typedef typename Map::const_iterator ConstIterator;
 
     typedef std::shared_ptr<JsonObject> ptr;
-    typedef std::pair<JsonString, JsonValueBase::ptr> kv_pair;
+    typedef std::pair<std::string, JsonValueBase::ptr> kv_pair;
 
     JsonObject() : JsonValue(JsonType::Object, Map()){}
 
-    size_t size() const { return val_.size(); }
+    JsonObject(const JsonObject& another);
 
-    bool empty() const { return val_.empty(); }
+    size_t size() const { return getValue().size(); }
 
-    ConstIterator begin() const { return val_.begin(); }
-    ConstIterator end() const { return val_.end(); }
-    Iterator begin() { return val_.begin(); }
-    Iterator end() { return val_.end(); }
+    bool empty() const { return getValue().empty(); }
 
-    void add(const JsonString &&key, JsonValueBase::ptr val){
-        val_.insert({key, val});
-    }
-    void add(const JsonString &key, JsonValueBase::ptr val){
-        val_.insert({key, val});
+    ConstIterator begin() const { return getValue().begin(); }
+    ConstIterator end() const { return getValue().end(); }
+    Iterator begin() { return getValue().begin(); }
+    Iterator end() { return getValue().end(); }
+
+    void add(const JsonString::ptr key, JsonValueBase::ptr val){
+        getValue().insert({std::static_pointer_cast<JsonValueBase>(key), val});
     }
     void add(const std::string &key, JsonValueBase::ptr val){
-        val_.insert({JsonString(key), val});
+        getValue().insert({str2base(key), val});
     }
     void add(const std::string &key, const std::string &val) { 
-        val_.insert({JsonString(key), std::make_shared<JsonString>(val)}); 
+        getValue().insert({str2base(key), std::make_shared<JsonString>(val)}); 
     }
     void add(const std::string &key, bool val) { 
-        val_.insert({JsonString(key), std::make_shared<JsonBoolean>(val)}); 
+        getValue().insert({str2base(key), std::make_shared<JsonBoolean>(val)}); 
     }
     void add(const std::string &key, int val) { 
-        val_.insert({JsonString(key), std::make_shared<JsonNumber>(val)}); 
+        getValue().insert({str2base(key), std::make_shared<JsonNumber>(val)}); 
     }
     void add(const std::string &key, double val) { 
-        val_.insert({JsonString(key), std::make_shared<JsonNumber>(val)}); 
+        getValue().insert({str2base(key), std::make_shared<JsonNumber>(val)}); 
     }
     void add(const std::string &key) { 
-        val_.insert({JsonString(key), std::make_shared<JsonNull>()}); 
+        getValue().insert({str2base(key), std::make_shared<JsonNull>()}); 
     }
     void del(const std::string &key) {
-        val_.erase(JsonString(key));
+        getValue().erase(str2base(key));
     }
-    template<typename T>
+
+    template<typename T = JsonValueBase>
     T& get(const std::string &key){
-        return *std::static_pointer_cast<T>(val_.at(JsonString(key)));
+        return *std::static_pointer_cast<T>(getValue().at(str2base(key)));
     }
 
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override {
         std::string res = "{";
         auto fmt = format.formatType();
         int cnt = 0;
-        for(const auto &[k, v] : val_){
+        for(const auto &[k, v] : getValue()){
             if(fmt == JsonFormatType::NEWLINE){
                 res += '\n';
                 res += std::string(depth+1, '\t');
             }
-            res += k.toString(format, depth+1);
+            res += k->toString(format, depth+1);
             res += ':';
             res += fmt == JsonFormatType::RAW ? "" : " ";
             res += v->toString(format, depth+1);
-            res += (cnt + 1 < (int)val_.size()) ? "," : "";
-            res += (cnt + 1 < (int)val_.size() && fmt == JsonFormatType::SPACE) ? " " : "";
+            res += (cnt + 1 < (int)getValue().size()) ? "," : "";
+            res += (cnt + 1 < (int)getValue().size() && fmt == JsonFormatType::SPACE) ? " " : "";
             ++cnt;
         }
-        res += fmt == JsonFormatType::NEWLINE && val_.size() ? '\n' + std::string(depth, '\t') : "";
+        res += fmt == JsonFormatType::NEWLINE && getValue().size() ? '\n' + std::string(depth, '\t') : "";
         res += '}';
         return res;
+    }
+
+private:
+    JsonValueBase::ptr str2base(std::string str){
+        return std::static_pointer_cast<JsonValueBase>(std::make_shared<JsonString>(str));
     }
 };
 
@@ -259,11 +279,22 @@ public:
 /* 
 convert to type T,  
 but not safe !!!
-一个不做任何检查的类型转换函数
-你应该在使用前自行检查类型转换是否合法
+一个不做任何检查的指针类型转换函数
+不安全
 */
 template<typename T>
-T type_cast(JsonValueBase::ptr source);
+T::ptr pointer_cast(JsonValueBase::ptr source){
+    static_assert(
+        std::is_same<T, JsonString>::value ||
+        std::is_same<T, JsonNumber>::value ||
+        std::is_same<T, JsonBoolean>::value ||
+        std::is_same<T, JsonNull>::value ||
+        std::is_same<T, JsonArray>::value ||
+        std::is_same<T, JsonObject>::value,
+        "error input type"
+    );
+    return std::static_pointer_cast<T>(source);
+}
 
 } // namespace json
 

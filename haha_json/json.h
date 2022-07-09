@@ -42,7 +42,7 @@ public:
 
     JsonType getType() const { return obj_ ? obj_->getType() : JsonType::UNKOWN; }
 
-    template<typename T>
+    template<typename T = JsonValueBase>
     std::shared_ptr<T> getValuePtr() const { return std::static_pointer_cast<T>(obj_); }
 
 private:

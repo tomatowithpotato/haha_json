@@ -8,39 +8,111 @@ namespace haha
 namespace json
 {
 
+/* ---------------------------------------------about copy--------------------------------------------- */
+
+JsonValueBase::ptr JsonValueBase::copyFrom(JsonValueBase::ptr src){
+    auto type = src->getType();
+    switch (type)
+    {
+    case JsonType::String:
+        {
+            auto p = pointer_cast<JsonString>(src);
+            JsonString::ptr res = std::make_shared<JsonString>(*p);
+            return std::static_pointer_cast<JsonValueBase>(res);
+        }
+        break;
+    case JsonType::Number:
+        {
+            auto p = pointer_cast<JsonNumber>(src);
+            JsonNumber::ptr res = std::make_shared<JsonNumber>(*p);
+            return std::static_pointer_cast<JsonValueBase>(res);
+        }
+        break;
+    case JsonType::Boolean:
+        {
+            auto p = pointer_cast<JsonBoolean>(src);
+            JsonBoolean::ptr res = std::make_shared<JsonBoolean>(*p);
+            return std::static_pointer_cast<JsonValueBase>(res);
+        }
+        break;
+    case JsonType::Null:
+        {
+            auto p = pointer_cast<JsonNull>(src);
+            JsonNull::ptr res = std::make_shared<JsonNull>(*p);
+            return std::static_pointer_cast<JsonValueBase>(res);
+        }
+        break;
+    case JsonType::Array:
+        {
+            auto p = pointer_cast<JsonArray>(src);
+            JsonArray::ptr res = std::make_shared<JsonArray>(*p);
+            return std::static_pointer_cast<JsonValueBase>(res);
+        }
+        break;
+    case JsonType::Object:
+        {
+            auto p = pointer_cast<JsonObject>(src);
+            JsonObject::ptr res = std::make_shared<JsonObject>(*p);
+            return std::static_pointer_cast<JsonValueBase>(res);
+        }
+        break;
+    default:
+        break;
+    }
+    return nullptr;
+}
+
+JsonValueBase::JsonValueBase(const JsonValueBase& jsvb){
+    if(jsvb.isScalar()){
+        val_ = jsvb.val_;
+    }
+    else{
+        if(jsvb.type_ == JsonType::Array){
+            val_ = std::vector<JsonValueBase::ptr>();
+            auto &arr = std::get<std::vector<JsonValueBase::ptr>>(val_);
+            auto &arr1 = std::get<std::vector<JsonValueBase::ptr>>(jsvb.val_);
+            for(auto p : arr1){
+                arr.emplace_back(copyFrom(p));
+            }
+        }
+        else if(jsvb.type_ == JsonType::Object){
+            val_ = std::map<JsonValueBase::ptr, JsonValueBase::ptr>();
+            auto &obj = std::get<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>(val_);
+            auto &obj1 = std::get<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>(jsvb.val_);
+            for(auto [k, v] : obj1){
+                auto kp = copyFrom(k);
+                auto vp = copyFrom(v);
+                obj.insert({kp, vp});
+            }
+        }
+    }
+    type_ = jsvb.type_;
+}
+
+
+JsonArray::JsonArray(const JsonArray &another){
+    val_ = std::vector<JsonValueBase::ptr>();
+    auto &arr = std::get<std::vector<JsonValueBase::ptr>>(val_);
+    auto &arr1 = std::get<std::vector<JsonValueBase::ptr>>(another.val_);
+    for(auto p : arr1){
+        arr.emplace_back(copyFrom(p));
+    }
+    type_ = another.type_;
+}
+
+JsonObject::JsonObject(const JsonObject& another){
+    val_ = std::map<JsonValueBase::ptr, JsonValueBase::ptr>();
+    auto &obj = std::get<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>(val_);
+    auto &obj1 = std::get<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>(another.val_);
+    for(auto [k, v] : obj1){
+        auto kp = copyFrom(k);
+        auto vp = copyFrom(v);
+        obj.insert({kp, vp});
+    }
+    type_ = another.type_;
+}
+
 /* ---------------------------------------------type conversion--------------------------------------------- */
-
-/* ====================================pointer to pointer==================================== */
-template<>
-JsonString::ptr type_cast(JsonValueBase::ptr source){ 
-    return std::static_pointer_cast<JsonString>(source);
-}
-
-template<>
-JsonBoolean::ptr type_cast(JsonValueBase::ptr source){ 
-    return std::static_pointer_cast<JsonBoolean>(source);
-}
-
-template<>
-JsonNumber::ptr type_cast(JsonValueBase::ptr source){ 
-    return std::static_pointer_cast<JsonNumber>(source);
-}
-
-template<>
-JsonNull::ptr type_cast(JsonValueBase::ptr source){ 
-    return std::static_pointer_cast<JsonNull>(source);
-}
-
-template<>
-JsonArray::ptr type_cast(JsonValueBase::ptr source){ 
-    return std::static_pointer_cast<JsonArray>(source);
-}
-
-template<>
-JsonObject::ptr type_cast(JsonValueBase::ptr source){ 
-    return std::static_pointer_cast<JsonObject>(source);
-}
-
 
 std::string getJsonTypeName(JsonType json_type){
     switch (json_type)
@@ -72,10 +144,10 @@ std::string getJsonTypeName(JsonType json_type){
 
 std::string JsonString::toString(const PrintFormatter &format, int depth) const{
     std::string res;
-    res.reserve(val_.size());
+    res.reserve(getValue().size());
     res += '"';
 
-    std::string_view view(val_);
+    std::string_view view(getValue());
     char utf_str[6] = {0};
     while(!view.empty()){
         // 普通字符

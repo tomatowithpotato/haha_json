@@ -199,7 +199,7 @@ JsonObject::ptr parse_object(std::string_view &str){
             return nullptr;
         }
 
-        obj->add(*std::static_pointer_cast<JsonString>(k), v);
+        obj->add(k, v);
 
         str = util::skip_CtrlAndSpace(str);
 
