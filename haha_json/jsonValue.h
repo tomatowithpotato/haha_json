@@ -192,6 +192,8 @@ public:
         res += "]";
         return res;
     }
+
+    JsonArray& operator=(const JsonArray& another);
 };
 
 
@@ -268,6 +270,8 @@ public:
         res += '}';
         return res;
     }
+
+    JsonObject& operator=(const JsonObject &another);
 
 private:
     JsonValueBase::ptr str2base(std::string str){

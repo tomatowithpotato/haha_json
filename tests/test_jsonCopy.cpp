@@ -25,6 +25,10 @@ int main(){
     std::cout << JSON::getJsonTypeName(obj2->getType()) << std::endl;
     std::cout << obj2->toString() << std::endl;
 
+    JSON::JsonObject obj3;
+    obj3 = *obj2;
+    std::cout << obj3.toString() << std::endl;
+
     json.fromString("\"123\"");
     auto p = json.getValuePtr<JSON::JsonString>();
 

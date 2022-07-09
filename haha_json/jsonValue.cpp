@@ -100,6 +100,19 @@ JsonArray::JsonArray(const JsonArray &another){
     type_ = another.type_;
 }
 
+
+JsonArray& JsonArray::operator=(const JsonArray& another){
+    val_ = std::vector<JsonValueBase::ptr>(); // 这个过程会自动把原来的值析构掉
+    auto &arr = std::get<std::vector<JsonValueBase::ptr>>(val_);
+    auto &arr1 = std::get<std::vector<JsonValueBase::ptr>>(another.val_);
+    for(auto p : arr1){
+        arr.emplace_back(copyFrom(p));
+    }
+    type_ = another.type_;
+    return *this;
+}
+
+
 JsonObject::JsonObject(const JsonObject& another){
     val_ = std::map<JsonValueBase::ptr, JsonValueBase::ptr>();
     auto &obj = std::get<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>(val_);
@@ -110,6 +123,19 @@ JsonObject::JsonObject(const JsonObject& another){
         obj.insert({kp, vp});
     }
     type_ = another.type_;
+}
+
+JsonObject& JsonObject::operator=(const JsonObject& another){
+    val_ = std::map<JsonValueBase::ptr, JsonValueBase::ptr>(); // 这个过程会自动把原来的值析构掉
+    auto &obj = std::get<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>(val_);
+    auto &obj1 = std::get<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>(another.val_);
+    for(auto [k, v] : obj1){
+        auto kp = copyFrom(k);
+        auto vp = copyFrom(v);
+        obj.insert({kp, vp});
+    }
+    type_ = another.type_;
+    return *this;
 }
 
 /* ---------------------------------------------type conversion--------------------------------------------- */
