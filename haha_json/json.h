@@ -2,6 +2,7 @@
 #define __HAHA_JSON_JSON_H__
 
 #include "jsonValue.h"
+#include "jsonTypeCast.h"
 #include "jsonUtil.h"
 #include "jsonReader.h"
 #include <string>
@@ -19,10 +20,10 @@ JsonValueBase::ptr parse(const std::string &str);
 
 JsonValueBase::ptr parse(std::string_view &str);
 JsonValueBase::ptr parse_value(std::string_view &str);
-JsonString::ptr parse_string(std::string_view &str);
-JsonNumber::ptr parse_number(std::string_view &str);
-JsonArray::ptr parse_array(std::string_view &str);
-JsonObject::ptr parse_object(std::string_view &str);
+JsonValueBase::ptr parse_string(std::string_view &str);
+JsonValueBase::ptr parse_number(std::string_view &str);
+JsonValueBase::ptr parse_array(std::string_view &str);
+JsonValueBase::ptr parse_object(std::string_view &str);
 
 class Json{
 public:
@@ -33,6 +34,15 @@ public:
     bool fromString(std::string_view str);
 
     std::string toString() const { return obj_ ? obj_->toString() : "---failed parse---"; }
+    std::string toString(bool ensure_ascii) const { 
+        return obj_ ? obj_->toString(ensure_ascii) : "---failed parse---"; 
+    }
+    std::string toString(int indent, bool ensure_ascii) const { 
+        return obj_ ? obj_->toString(indent, ensure_ascii) : "---failed parse---"; 
+    }
+    std::string toString(const JsonFormatType &fmt, int indent, bool ensure_ascii) const {
+         return obj_ ? obj_->toString(fmt, indent, ensure_ascii) : "---failed parse---"; 
+    }
 
     bool fromFile(const char* filePath);
     bool fromFile(const std::string &filePath);

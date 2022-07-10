@@ -12,53 +12,29 @@ namespace json
 
 JsonValueBase::ptr JsonValueBase::copyFrom(JsonValueBase::ptr src){
     auto type = src->getType();
+    #define CASE(name) \
+        case JsonType::name:\
+            { \
+                auto p = pointer_cast<Json##name>(src); \
+                auto res = std::make_shared<Json##name>(*p);\
+                return std::static_pointer_cast<JsonValueBase>(res); \
+            }\
+            break;
+
     switch (type)
     {
-    case JsonType::String:
-        {
-            auto p = pointer_cast<JsonString>(src);
-            JsonString::ptr res = std::make_shared<JsonString>(*p);
-            return std::static_pointer_cast<JsonValueBase>(res);
-        }
-        break;
-    case JsonType::Number:
-        {
-            auto p = pointer_cast<JsonNumber>(src);
-            JsonNumber::ptr res = std::make_shared<JsonNumber>(*p);
-            return std::static_pointer_cast<JsonValueBase>(res);
-        }
-        break;
-    case JsonType::Boolean:
-        {
-            auto p = pointer_cast<JsonBoolean>(src);
-            JsonBoolean::ptr res = std::make_shared<JsonBoolean>(*p);
-            return std::static_pointer_cast<JsonValueBase>(res);
-        }
-        break;
-    case JsonType::Null:
-        {
-            auto p = pointer_cast<JsonNull>(src);
-            JsonNull::ptr res = std::make_shared<JsonNull>(*p);
-            return std::static_pointer_cast<JsonValueBase>(res);
-        }
-        break;
-    case JsonType::Array:
-        {
-            auto p = pointer_cast<JsonArray>(src);
-            JsonArray::ptr res = std::make_shared<JsonArray>(*p);
-            return std::static_pointer_cast<JsonValueBase>(res);
-        }
-        break;
-    case JsonType::Object:
-        {
-            auto p = pointer_cast<JsonObject>(src);
-            JsonObject::ptr res = std::make_shared<JsonObject>(*p);
-            return std::static_pointer_cast<JsonValueBase>(res);
-        }
-        break;
-    default:
-        break;
+        CASE(String);
+        CASE(Integer);
+        CASE(Double);
+        CASE(Boolean);
+        CASE(Null);
+        CASE(Array);
+        CASE(Object);
+        default:
+            break;
     }
+
+    #undef CASE
     return nullptr;
 }
 
@@ -152,8 +128,11 @@ std::string getJsonTypeName(JsonType json_type){
     case JsonType::String:
         return "String";
         break;
-    case JsonType::Number:
-        return "Number";
+    case JsonType::Integer:
+        return "Integer";
+        break;
+    case JsonType::Double:
+        return "Double";
         break;
     case JsonType::Boolean:
         return "Boolean";

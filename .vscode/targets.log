@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sun Jul 10 11:12:25 2022
+# Make data base, printed on Sun Jul 10 16:02:25 2022
 
 # Variables
 
@@ -63,7 +63,7 @@ CONDA_PREFIX = /home/lighthouse/anaconda3
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/1001/vscode-ipc-ab2dbe12-9416-4c3b-aa62-b43f03bc2f0d.sock
+VSCODE_IPC_HOOK_CLI = /run/user/1001/vscode-ipc-fddf1a45-7e64-4ec3-97b0-fd862ae38066.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -93,7 +93,7 @@ LESSCLOSE = /usr/bin/lesspipe %s %s
 # environment
 LOGNAME = lighthouse
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # environment
 CONDA_PROMPT_MODIFIER = (base) 
 # automatic
@@ -181,9 +181,9 @@ _CE_CONDA =
 
 # Directories
 
-# . (device 64514, inode 663300): 14 files, no impossibilities.
+# . (device 64514, inode 663300): 16 files, no impossibilities.
 
-# 14 files, no impossibilities in 1 directories.
+# 16 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
@@ -233,12 +233,12 @@ GNUmakefile:
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 22 / storage = 237 B / avg = 10 B
-# current buf: size = 8162 B / used = 237 B / count = 22 / avg = 10 B
+# strcache buffers: 1 (0) / strings = 24 / storage = 247 B / avg = 10 B
+# current buf: size = 8162 B / used = 247 B / count = 24 / avg = 10 B
 
-# strcache performance: lookups = 25 / hit rate = 12%
+# strcache performance: lookups = 27 / hit rate = 11%
 # hash-table stats:
-# Load=22/8192=0%, Rehash=0, Collisions=1/25=4%
-# Finished Make data base on Sun Jul 10 11:12:25 2022
+# Load=24/8192=0%, Rehash=0, Collisions=1/27=4%
+# Finished Make data base on Sun Jul 10 16:02:25 2022
 
  

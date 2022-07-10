@@ -1,4 +1,5 @@
 #include "json.h"
+#include <limits.h>
 
 namespace haha
 {
@@ -8,7 +9,7 @@ namespace json
 
 /* ---------------------------------------------parse--------------------------------------------- */
 
-JsonString::ptr parse_string(std::string_view &str){
+JsonValueBase::ptr parse_string(std::string_view &str){
     if(str[0] != '"')return nullptr;
     str.remove_prefix(1);
 
@@ -81,16 +82,19 @@ JsonString::ptr parse_string(std::string_view &str){
     str.remove_prefix(1);
 
     JsonString::ptr jstr(std::make_shared<JsonString>(output));
-    return jstr;
+
+    return std::static_pointer_cast<JsonValueBase>(jstr);
 }
 
 
-JsonNumber::ptr parse_number(std::string_view &str){
+JsonValueBase::ptr parse_number(std::string_view &str){
     if(!isdigit(str[0]) && str[0] != '-')return nullptr;
 
+    bool isInt = true;
     double number = 0;
     std::string number_str;
     while(!str.empty() && util::isNumberComponent(str[0])){
+        isInt = str[0] != '.';
         number_str += str[0];
         str.remove_prefix(1);
     }
@@ -102,11 +106,19 @@ JsonNumber::ptr parse_number(std::string_view &str){
         return nullptr;
     }
 
-    return std::make_shared<JsonNumber>(number);
+    JsonValueBase::ptr res = nullptr;
+    if(isInt && number <= INT_MAX && number >= INT_MIN){
+        res = std::make_shared<JsonInteger>((int)number);
+    }
+    else{
+        res = std::make_shared<JsonDouble>(number);
+    }
+
+    return res;
 }
 
 
-JsonArray::ptr parse_array(std::string_view &str){
+JsonValueBase::ptr parse_array(std::string_view &str){
     if(str[0] != '[')return nullptr;
     str.remove_prefix(1);
 
@@ -145,11 +157,11 @@ JsonArray::ptr parse_array(std::string_view &str){
     }
     str.remove_prefix(1);
 
-    return arr;
+    return std::static_pointer_cast<JsonValueBase>(arr);
 }
 
 
-JsonObject::ptr parse_object(std::string_view &str){
+JsonValueBase::ptr parse_object(std::string_view &str){
     if(str[0] != '{')return nullptr;
     str.remove_prefix(1);
 
@@ -199,7 +211,7 @@ JsonObject::ptr parse_object(std::string_view &str){
             return nullptr;
         }
 
-        obj->add(k, v);
+        obj->add(std::static_pointer_cast<JsonString>(k), v);
 
         str = util::skip_CtrlAndSpace(str);
 
@@ -210,7 +222,7 @@ JsonObject::ptr parse_object(std::string_view &str){
     }
     str.remove_prefix(1);
 
-    return obj;
+    return std::static_pointer_cast<JsonValueBase>(obj);
 }
 
 
@@ -218,16 +230,16 @@ JsonValueBase::ptr parse_value(std::string_view &str){
     if(str.empty())return nullptr;
 
     if(str.size() && (str[0] == '{')){
-        return std::static_pointer_cast<JsonValueBase>(parse_object(str));
+        return parse_object(str);
     }
     if(str.size() && (str[0] == '[')){
-        return std::static_pointer_cast<JsonValueBase>(parse_array(str));
+        return parse_array(str);
     }
     if(str.size() && (int)str[0] == '"'){
-        return std::static_pointer_cast<JsonValueBase>(parse_string(str));
+        return parse_string(str);
     }
     if(str.size() && (str[0] == '-' || isdigit(str[0]))){
-        return std::static_pointer_cast<JsonValueBase>(parse_number(str));
+        return parse_number(str);
     }
     if(str.size() >= 4 && str.compare(0, 4, "null") == 0){
         str.remove_prefix(4);

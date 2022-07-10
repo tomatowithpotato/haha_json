@@ -14,22 +14,9 @@ namespace haha
 namespace json
 {
 
-enum class JsonType { UNKOWN, Object, Array, String, Number, Boolean, Null };
+enum class JsonType { UNKOWN, Object, Array, String, Integer, Double, Boolean, Null };
 
 typedef decltype(nullptr) NullType;
-
-struct Number{
-    int integer_;
-    double double_;
-};
-
-// template<typename T> JsonType __toJsonType();
-// // 下边的要写在源文件里头
-// template<> JsonType __toJsonType<std::string>() { return JsonType::String; }
-// template<> JsonType __toJsonType<int>() { return JsonType::Number; }
-// template<> JsonType __toJsonType<double>() { return JsonType::Number; }
-// template<> JsonType __toJsonType<bool>() { return JsonType::Boolean; }
-// template<> JsonType __toJsonType<NullType>() { return JsonType::Null; }
 
 std::string getJsonTypeName(JsonType json_type);
 
@@ -70,6 +57,16 @@ public:
     bool isIterable() const { return type_ == JsonType::Object || type_ == JsonType::Array; }
     virtual std::string toString (const PrintFormatter &format = PrintFormatter(), int depth = 0) const { return ""; }
 
+    std::string toString (bool ensure_ascii) const {
+        return toString({JsonFormatType::RAW, 0, ensure_ascii});
+    }
+    std::string toString (int indent, bool ensure_ascii) const {
+        return toString({JsonFormatType::RAW, indent, ensure_ascii});
+    }
+    std::string toString (const JsonFormatType &fmt, int indent, bool ensure_ascii) const {
+        return toString({fmt, indent, ensure_ascii});
+    }
+
 protected:
     JsonValueBase::ptr copyFrom(JsonValueBase::ptr src);
 
@@ -77,8 +74,8 @@ protected:
     JsonType type_;
 
 protected:
-    std::variant<bool,decltype(nullptr),
-                Number,
+    std::variant<bool, int, double,
+                decltype(nullptr),
                 std::string,
                 std::vector<JsonValueBase::ptr>,
                 std::map<JsonString, JsonValueBase::ptr>> val_ = nullptr;
@@ -118,24 +115,19 @@ public:
     }
 };
 
-
-class JsonNumber : public JsonValue<Number>{
+template<typename T, JsonType JTYPE>
+class JsonNumber : public JsonValue<T>{
 public:
     typedef std::shared_ptr<JsonNumber> ptr;
-    explicit JsonNumber(int val)
-        :JsonValue(JsonType::Number, {val, static_cast<double>(val)})
-    {
-    }
-    explicit JsonNumber(double val)
-        :JsonValue(JsonType::Number, {static_cast<int>(val), val})
-    {
-    }
+    explicit JsonNumber(const T& val):JsonValue<T>(JTYPE, val){}
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override { 
-        return std::to_string(getValue().double_); 
+        return std::to_string(JsonValue<T>::getValue()); 
     }
-    int toInt() { return getValue().integer_; }
-    double toDouble() { return getValue().double_; }
 };
+
+using JsonInteger = JsonNumber<int, JsonType::Integer>;
+
+using JsonDouble = JsonNumber<double, JsonType::Double>;
 
 
 class JsonNull : public JsonValue<decltype(nullptr)>{
@@ -170,8 +162,8 @@ public:
     void add(JsonValueBase::ptr val) { getValue().emplace_back(val); }
     void add(const std::string &str) { getValue().emplace_back(std::make_shared<JsonString>(str)); }
     void add(bool val) { getValue().emplace_back(std::make_shared<JsonBoolean>(val)); }
-    void add(int val) { getValue().emplace_back(std::make_shared<JsonNumber>(val)); }
-    void add(double val) { getValue().emplace_back(std::make_shared<JsonNumber>(val)); }
+    void add(int val) { getValue().emplace_back(std::make_shared<JsonInteger>(val)); }
+    void add(double val) { getValue().emplace_back(std::make_shared<JsonDouble>(val)); }
     void add() { getValue().emplace_back(std::make_shared<JsonNull>()); }
 
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override {
@@ -237,10 +229,10 @@ public:
         getValue().insert({JsonString(key), std::make_shared<JsonBoolean>(val)}); 
     }
     void add(const std::string &key, int val) { 
-        getValue().insert({JsonString(key), std::make_shared<JsonNumber>(val)}); 
+        getValue().insert({JsonString(key), std::make_shared<JsonInteger>(val)}); 
     }
     void add(const std::string &key, double val) { 
-        getValue().insert({JsonString(key), std::make_shared<JsonNumber>(val)}); 
+        getValue().insert({JsonString(key), std::make_shared<JsonDouble>(val)}); 
     }
     void add(const std::string &key) { 
         getValue().insert({JsonString(key), std::make_shared<JsonNull>()}); 
@@ -280,17 +272,13 @@ public:
 };
 
 
-/* 
-convert to type T,  
-but not safe !!!
-一个不做任何检查的指针类型转换函数
-不安全
-*/
+/* 指针转换 */
 template<typename T>
 T::ptr pointer_cast(JsonValueBase::ptr source){
     static_assert(
         std::is_same<T, JsonString>::value ||
-        std::is_same<T, JsonNumber>::value ||
+        std::is_same<T, JsonInteger>::value ||
+        std::is_same<T, JsonDouble>::value ||
         std::is_same<T, JsonBoolean>::value ||
         std::is_same<T, JsonNull>::value ||
         std::is_same<T, JsonArray>::value ||
@@ -299,50 +287,6 @@ T::ptr pointer_cast(JsonValueBase::ptr source){
     );
     return std::static_pointer_cast<T>(source);
 }
-
-template<typename T, typename V> struct isMatchType {};
-
-template<typename V>
-struct isMatchType<JsonString, V>{
-    bool operator() (){
-        return std::is_same<V, std::string>::value;
-    }
-};
-
-template<typename V>
-struct isMatchType<JsonNumber, V>{
-    bool operator() (){
-        return std::is_same<V, int>::value || std::is_same<V, double>::value;
-    }
-};
-
-template<typename V>
-struct isMatchType<JsonBoolean, V>{
-    bool operator() (){
-        return std::is_same<V, bool>::value;
-    }
-};
-
-template<typename V>
-struct isMatchType<JsonNull, V>{
-    bool operator() (){
-        return std::is_same<V, decltype(nullptr)>::value;
-    }
-};
-
-template<typename V>
-struct isMatchType<JsonArray, V>{
-    bool operator() (){
-        return std::is_same<V, JsonArray::ValueType>::value;
-    }
-};
-
-template<typename V>
-struct isMatchType<JsonObject, V>{
-    bool operator() (){
-        return std::is_same<V, JsonObject::ValueType>::value;
-    }
-};
 
 } // namespace json
 
