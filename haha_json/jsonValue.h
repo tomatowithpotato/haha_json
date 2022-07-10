@@ -88,7 +88,7 @@ protected:
 template<typename T>
 class JsonValue : public JsonValueBase{
 public:
-    typedef T ValueType;
+    using ValueType = T;
     JsonValue(JsonType type, const T& val)
         :JsonValueBase(type){ val_ = val; }
     JsonValue():JsonValueBase(){}
@@ -299,6 +299,50 @@ T::ptr pointer_cast(JsonValueBase::ptr source){
     );
     return std::static_pointer_cast<T>(source);
 }
+
+template<typename T, typename V> struct isMatchType {};
+
+template<typename V>
+struct isMatchType<JsonString, V>{
+    bool operator() (){
+        return std::is_same<V, std::string>::value;
+    }
+};
+
+template<typename V>
+struct isMatchType<JsonNumber, V>{
+    bool operator() (){
+        return std::is_same<V, int>::value || std::is_same<V, double>::value;
+    }
+};
+
+template<typename V>
+struct isMatchType<JsonBoolean, V>{
+    bool operator() (){
+        return std::is_same<V, bool>::value;
+    }
+};
+
+template<typename V>
+struct isMatchType<JsonNull, V>{
+    bool operator() (){
+        return std::is_same<V, decltype(nullptr)>::value;
+    }
+};
+
+template<typename V>
+struct isMatchType<JsonArray, V>{
+    bool operator() (){
+        return std::is_same<V, JsonArray::ValueType>::value;
+    }
+};
+
+template<typename V>
+struct isMatchType<JsonObject, V>{
+    bool operator() (){
+        return std::is_same<V, JsonObject::ValueType>::value;
+    }
+};
 
 } // namespace json
 
