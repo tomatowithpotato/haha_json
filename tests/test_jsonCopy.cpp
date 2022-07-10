@@ -29,6 +29,12 @@ int main(){
     obj3 = *obj2;
     std::cout << obj3.toString() << std::endl;
 
+    obj2->add("nothing");
+    auto cnt = obj2->del("arr");
+    std::cout << cnt << std::endl;
+    std::cout << obj2->toString() << std::endl;
+    std::cout << obj3.toString() << std::endl;
+
     json.fromString("\"123\"");
     auto p = json.getValuePtr<JSON::JsonString>();
 

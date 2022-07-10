@@ -53,6 +53,7 @@ private:
     bool ensure_ascii_ = true;
 };
 
+class JsonString;
 
 class JsonValueBase{
 public:
@@ -80,8 +81,9 @@ protected:
                 Number,
                 std::string,
                 std::vector<JsonValueBase::ptr>,
-                std::map<JsonValueBase::ptr, JsonValueBase::ptr>> val_ = nullptr;
+                std::map<JsonString, JsonValueBase::ptr>> val_ = nullptr;
 };
+
 
 template<typename T>
 class JsonValue : public JsonValueBase{
@@ -197,9 +199,9 @@ public:
 };
 
 
-class JsonObject : public JsonValue<std::map<JsonValueBase::ptr, JsonValueBase::ptr>>{
+class JsonObject : public JsonValue<std::map<JsonString, JsonValueBase::ptr>>{
 public:
-    typedef typename std::map<JsonValueBase::ptr, JsonValueBase::ptr> Map;
+    typedef typename std::map<JsonString, JsonValueBase::ptr> Map;
     typedef typename Map::iterator Iterator;
     typedef typename Map::const_iterator ConstIterator;
 
@@ -220,33 +222,36 @@ public:
     Iterator end() { return getValue().end(); }
 
     void add(const JsonString::ptr key, JsonValueBase::ptr val){
-        getValue().insert({std::static_pointer_cast<JsonValueBase>(key), val});
+        getValue().insert({*key, val});
+    }
+    void add(const JsonString key, JsonValueBase::ptr val){
+        getValue().insert({key, val});
     }
     void add(const std::string &key, JsonValueBase::ptr val){
-        getValue().insert({str2base(key), val});
+        getValue().insert({JsonString(key), val});
     }
     void add(const std::string &key, const std::string &val) { 
-        getValue().insert({str2base(key), std::make_shared<JsonString>(val)}); 
+        getValue().insert({JsonString(key), std::make_shared<JsonString>(val)}); 
     }
     void add(const std::string &key, bool val) { 
-        getValue().insert({str2base(key), std::make_shared<JsonBoolean>(val)}); 
+        getValue().insert({JsonString(key), std::make_shared<JsonBoolean>(val)}); 
     }
     void add(const std::string &key, int val) { 
-        getValue().insert({str2base(key), std::make_shared<JsonNumber>(val)}); 
+        getValue().insert({JsonString(key), std::make_shared<JsonNumber>(val)}); 
     }
     void add(const std::string &key, double val) { 
-        getValue().insert({str2base(key), std::make_shared<JsonNumber>(val)}); 
+        getValue().insert({JsonString(key), std::make_shared<JsonNumber>(val)}); 
     }
     void add(const std::string &key) { 
-        getValue().insert({str2base(key), std::make_shared<JsonNull>()}); 
+        getValue().insert({JsonString(key), std::make_shared<JsonNull>()}); 
     }
-    void del(const std::string &key) {
-        getValue().erase(str2base(key));
+    size_t del(const std::string &key) {
+        return getValue().erase(JsonString(key));
     }
 
     template<typename T = JsonValueBase>
     T& get(const std::string &key){
-        return *std::static_pointer_cast<T>(getValue().at(str2base(key)));
+        return *std::static_pointer_cast<T>(getValue().at(JsonString(key)));
     }
 
     std::string toString(const PrintFormatter &format = PrintFormatter(), int depth = 0) const override {
@@ -258,7 +263,7 @@ public:
                 res += '\n';
                 res += std::string(depth+1, '\t');
             }
-            res += k->toString(format, depth+1);
+            res += k.toString(format, depth+1);
             res += ':';
             res += fmt == JsonFormatType::RAW ? "" : " ";
             res += v->toString(format, depth+1);
@@ -272,11 +277,6 @@ public:
     }
 
     JsonObject& operator=(const JsonObject &another);
-
-private:
-    JsonValueBase::ptr str2base(std::string str){
-        return std::static_pointer_cast<JsonValueBase>(std::make_shared<JsonString>(str));
-    }
 };
 
 
