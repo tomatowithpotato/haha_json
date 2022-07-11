@@ -106,7 +106,6 @@ public:
         :JsonNode(type){ val_ = val; }
     JsonValue():JsonNode(){}
     const T& getValue() const { return std::get<ValueType>(val_); }
-protected:
     T& getValue() { return std::get<ValueType>(val_); }
 };
 
