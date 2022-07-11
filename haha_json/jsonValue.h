@@ -25,50 +25,66 @@ enum class JsonFormatType { RAW, SPACE, NEWLINE };
 class PrintFormatter{
 public:
     PrintFormatter(const JsonFormatType &fmt = JsonFormatType::RAW, 
-                    int indent = 0,
-                    bool ensure_ascii = true)
+                    int indent = 0)
+                    // bool ensure_ascii = true)
         :format_(fmt),
-        indent_(indent),
-        ensure_ascii_(ensure_ascii)
+        indent_(indent)
+        // ensure_ascii_(ensure_ascii)
     {
     }
     JsonFormatType formatType() const { return format_; }
-    bool ensureAscii() const { return ensure_ascii_; }
+    // bool ensureAscii() const { return ensure_ascii_; }
 private:
     JsonFormatType format_ = JsonFormatType::RAW;
     int indent_ = 0;
-    bool ensure_ascii_ = true;
+    // bool ensure_ascii_ = true;
 };
 
 class JsonString;
 
-class JsonValueBase{
+class JsonNode{
 public:
-    typedef std::shared_ptr<JsonValueBase> ptr;
-    explicit JsonValueBase(JsonType type = JsonType::UNKOWN):type_(type){}
-    virtual ~JsonValueBase() {}
+    typedef std::shared_ptr<JsonNode> ptr;
+    explicit JsonNode(JsonType type = JsonType::UNKOWN):type_(type){}
+    virtual ~JsonNode() {}
 
-    JsonValueBase(const JsonValueBase& jsvb);
+    JsonNode(const JsonNode& jsvb);
 
     JsonType getType() const { return type_; }
     // 是否为标量：字符串、数字、bool、null
     bool isScalar() const { return !isIterable(); }
     // 可迭代类型：对象、数组
     bool isIterable() const { return type_ == JsonType::Object || type_ == JsonType::Array; }
+    
+    bool isString() { return type_ == JsonType::String; }
+    bool isNumber() { return isInteger() || isDouble(); }
+    bool isInteger() { return type_ == JsonType::Integer; }
+    bool isDouble() { return type_ == JsonType::Double; }
+    bool isBoolean() { return type_ == JsonType::Boolean; }
+    bool isNull() { return type_ == JsonType::Null; }
+    bool isArray() { return type_ == JsonType::Array; }
+    bool isObject() { return type_ == JsonType::Object; }
+
     virtual std::string toString (const PrintFormatter &format = PrintFormatter(), int depth = 0) const { return ""; }
 
-    std::string toString (bool ensure_ascii) const {
-        return toString({JsonFormatType::RAW, 0, ensure_ascii});
+    // std::string toString (bool ensure_ascii) const {
+    //     return toString({JsonFormatType::RAW, 0, ensure_ascii});
+    // }
+    // std::string toString (int indent, bool ensure_ascii) const {
+    //     return toString({JsonFormatType::RAW, indent, ensure_ascii});
+    // }
+    // std::string toString (const JsonFormatType &fmt, int indent, bool ensure_ascii) const {
+    //     return toString({fmt, indent, ensure_ascii});
+    // }
+    std::string toString (int indent) const {
+        return toString({JsonFormatType::RAW, indent});
     }
-    std::string toString (int indent, bool ensure_ascii) const {
-        return toString({JsonFormatType::RAW, indent, ensure_ascii});
-    }
-    std::string toString (const JsonFormatType &fmt, int indent, bool ensure_ascii) const {
-        return toString({fmt, indent, ensure_ascii});
+    std::string toString (const JsonFormatType &fmt, int indent) const {
+        return toString({fmt, indent});
     }
 
 protected:
-    JsonValueBase::ptr copyFrom(JsonValueBase::ptr src);
+    JsonNode::ptr copyFrom(JsonNode::ptr src);
 
 protected:
     JsonType type_;
@@ -77,18 +93,18 @@ protected:
     std::variant<bool, int, double,
                 decltype(nullptr),
                 std::string,
-                std::vector<JsonValueBase::ptr>,
-                std::map<JsonString, JsonValueBase::ptr>> val_ = nullptr;
+                std::vector<JsonNode::ptr>,
+                std::map<JsonString, JsonNode::ptr>> val_ = nullptr;
 };
 
 
 template<typename T>
-class JsonValue : public JsonValueBase{
+class JsonValue : public JsonNode{
 public:
     using ValueType = T;
     JsonValue(JsonType type, const T& val)
-        :JsonValueBase(type){ val_ = val; }
-    JsonValue():JsonValueBase(){}
+        :JsonNode(type){ val_ = val; }
+    JsonValue():JsonNode(){}
     const T& getValue() const { return std::get<ValueType>(val_); }
 protected:
     T& getValue() { return std::get<ValueType>(val_); }
@@ -106,6 +122,7 @@ public:
     }
 };
 
+
 class JsonBoolean : public JsonValue<bool>{
 public:
     typedef std::shared_ptr<JsonBoolean> ptr;
@@ -114,6 +131,7 @@ public:
         return getValue() ? "true" : "false";
     }
 };
+
 
 template<typename T, JsonType JTYPE>
 class JsonNumber : public JsonValue<T>{
@@ -140,9 +158,9 @@ public:
 };
 
 
-class JsonArray : public JsonValue<std::vector<JsonValueBase::ptr>>{
+class JsonArray : public JsonValue<std::vector<JsonNode::ptr>>{
 public:
-    typedef typename std::vector<JsonValueBase::ptr> Array;
+    typedef typename std::vector<JsonNode::ptr> Array;
     typedef typename Array::iterator Iterator;
     typedef typename Array::const_iterator ConstIterator;
 
@@ -159,7 +177,7 @@ public:
     size_t size() const { return getValue().size(); }
     bool empty() const { return getValue().empty(); }
 
-    void add(JsonValueBase::ptr val) { getValue().emplace_back(val); }
+    void add(JsonNode::ptr val) { getValue().emplace_back(val); }
     void add(const std::string &str) { getValue().emplace_back(std::make_shared<JsonString>(str)); }
     void add(bool val) { getValue().emplace_back(std::make_shared<JsonBoolean>(val)); }
     void add(int val) { getValue().emplace_back(std::make_shared<JsonInteger>(val)); }
@@ -191,14 +209,14 @@ public:
 };
 
 
-class JsonObject : public JsonValue<std::map<JsonString, JsonValueBase::ptr>>{
+class JsonObject : public JsonValue<std::map<JsonString, JsonNode::ptr>>{
 public:
-    typedef typename std::map<JsonString, JsonValueBase::ptr> Map;
+    typedef typename std::map<JsonString, JsonNode::ptr> Map;
     typedef typename Map::iterator Iterator;
     typedef typename Map::const_iterator ConstIterator;
 
     typedef std::shared_ptr<JsonObject> ptr;
-    typedef std::pair<std::string, JsonValueBase::ptr> kv_pair;
+    typedef std::pair<std::string, JsonNode::ptr> kv_pair;
 
     JsonObject() : JsonValue(JsonType::Object, Map()){}
 
@@ -213,13 +231,13 @@ public:
     Iterator begin() { return getValue().begin(); }
     Iterator end() { return getValue().end(); }
 
-    void add(const JsonString::ptr key, JsonValueBase::ptr val){
+    void add(const JsonString::ptr key, JsonNode::ptr val){
         getValue().insert({*key, val});
     }
-    void add(const JsonString key, JsonValueBase::ptr val){
+    void add(const JsonString key, JsonNode::ptr val){
         getValue().insert({key, val});
     }
-    void add(const std::string &key, JsonValueBase::ptr val){
+    void add(const std::string &key, JsonNode::ptr val){
         getValue().insert({JsonString(key), val});
     }
     void add(const std::string &key, const std::string &val) { 
@@ -241,7 +259,7 @@ public:
         return getValue().erase(JsonString(key));
     }
 
-    template<typename T = JsonValueBase>
+    template<typename T = JsonNode>
     T& get(const std::string &key){
         return *std::static_pointer_cast<T>(getValue().at(JsonString(key)));
     }
@@ -274,7 +292,7 @@ public:
 
 /* 指针转换 */
 template<typename T>
-T::ptr pointer_cast(JsonValueBase::ptr source){
+T::ptr pointer_cast(JsonNode::ptr source){
     static_assert(
         std::is_same<T, JsonString>::value ||
         std::is_same<T, JsonInteger>::value ||

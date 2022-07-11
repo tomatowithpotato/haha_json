@@ -5,60 +5,48 @@
 namespace JSON = haha::json;
 
 int main(){
-    std::string str = "{\"check\": 123.5e10, \"2893h\":\"ok\", \"arr\": [\"sd\", null, -11]}";
-    JSON::Json json;
-
-    bool ok = true;
-    ok = json.fromString(str);
-
-    std::cout << ok << std::endl;
-
-    std::cout << json.toString(false) << std::endl;
+    JSON::JsonNode::ptr js;
 
     std::string filePath = "../test.json"; // 文件位置自己定
 
-    ok = json.fromFile(filePath);
+    // 从文件读取
+    js = JSON::fromFile(filePath);
 
-    std::cout << ok << std::endl;
+    // 序列化（转为字符串）
+    std::cout << js->toString() << std::endl;
 
-    std::cout << json.toString() << std::endl;
-
+    // 类型转换
     JSON::JsonObject::ptr obj;
-    if(json.getType() == JSON::JsonType::Object){
-        obj = json.getValuePtr<JSON::JsonObject>();
+    if(js->getType() == JSON::JsonType::Object){
+        obj = JSON::pointer_cast<JsonObject>(js);
     }
 
+    // 输出格式
     JSON::PrintFormatter fmt{
         JSON::JsonFormatType::NEWLINE,
         1,
-        true
     };
 
-    /* 序列化 */
+    /* 序列化（转为字符串） */
     std::string output = obj->toString(fmt);
     std::cout << output << std::endl;
 
     std::cout << std::string(60, '*') << std::endl;
 
-    /* 反序列化 */
-    JSON::Json json1;
-    ok = json1.fromString(output);
-    std::cout << ok << std::endl;
-    JSON::JsonObject::ptr obj1;
-    if(json1.getType() == JSON::JsonType::Object){
-        obj1 = json.getValuePtr<JSON::JsonObject>();
-    }
+    /* 反序列化（从字符串读取） */
+    JSON::JsonNode::ptr js1;
+    js1 = JSON::fromString(output);
 
     JSON::PrintFormatter fmt1{
         JSON::JsonFormatType::NEWLINE,
         1,
-        false
     };
     
-    if(ok){
-        std::string output1 = obj1->toString(fmt1);
-        std::cout << output1 << std::endl;
-    }
+    std::string output1 = js1->toString(fmt1);
+    std::cout << output1 << std::endl;
+
+    // 输出到文件
+    JSON::toFile(js1, "../output.json", fmt1);
 
     return 0;
 }

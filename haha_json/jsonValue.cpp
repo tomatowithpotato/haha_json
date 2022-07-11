@@ -10,14 +10,14 @@ namespace json
 
 /* ---------------------------------------------about copy--------------------------------------------- */
 
-JsonValueBase::ptr JsonValueBase::copyFrom(JsonValueBase::ptr src){
+JsonNode::ptr JsonNode::copyFrom(JsonNode::ptr src){
     auto type = src->getType();
     #define CASE(name) \
         case JsonType::name:\
             { \
                 auto p = pointer_cast<Json##name>(src); \
                 auto res = std::make_shared<Json##name>(*p);\
-                return std::static_pointer_cast<JsonValueBase>(res); \
+                return std::static_pointer_cast<JsonNode>(res); \
             }\
             break;
 
@@ -38,24 +38,24 @@ JsonValueBase::ptr JsonValueBase::copyFrom(JsonValueBase::ptr src){
     return nullptr;
 }
 
-JsonValueBase::JsonValueBase(const JsonValueBase& jsvb){
+JsonNode::JsonNode(const JsonNode& jsvb){
     if(jsvb.isScalar()){
         val_ = jsvb.val_;
     }
     else{
         if(jsvb.type_ == JsonType::Array){
-            val_ = std::vector<JsonValueBase::ptr>();
-            auto &arr = std::get<std::vector<JsonValueBase::ptr>>(val_);
-            auto &arr1 = std::get<std::vector<JsonValueBase::ptr>>(jsvb.val_);
+            val_ = std::vector<JsonNode::ptr>();
+            auto &arr = std::get<std::vector<JsonNode::ptr>>(val_);
+            auto &arr1 = std::get<std::vector<JsonNode::ptr>>(jsvb.val_);
             arr.reserve(arr1.size());
             for(auto p : arr1){
                 arr.emplace_back(copyFrom(p));
             }
         }
         else if(jsvb.type_ == JsonType::Object){
-            val_ = std::map<JsonString, JsonValueBase::ptr>();
-            auto &obj = std::get<std::map<JsonString, JsonValueBase::ptr>>(val_);
-            auto &obj1 = std::get<std::map<JsonString, JsonValueBase::ptr>>(jsvb.val_);
+            val_ = std::map<JsonString, JsonNode::ptr>();
+            auto &obj = std::get<std::map<JsonString, JsonNode::ptr>>(val_);
+            auto &obj1 = std::get<std::map<JsonString, JsonNode::ptr>>(jsvb.val_);
             for(auto [k, v] : obj1){
                 auto vp = copyFrom(v);
                 obj.insert({k, vp});
@@ -67,9 +67,9 @@ JsonValueBase::JsonValueBase(const JsonValueBase& jsvb){
 
 
 JsonArray::JsonArray(const JsonArray &another){
-    val_ = std::vector<JsonValueBase::ptr>();
-    auto &arr = std::get<std::vector<JsonValueBase::ptr>>(val_);
-    auto &arr1 = std::get<std::vector<JsonValueBase::ptr>>(another.val_);
+    val_ = std::vector<JsonNode::ptr>();
+    auto &arr = std::get<std::vector<JsonNode::ptr>>(val_);
+    auto &arr1 = std::get<std::vector<JsonNode::ptr>>(another.val_);
     arr.reserve(arr1.size());
     for(auto p : arr1){
         arr.emplace_back(copyFrom(p));
@@ -79,9 +79,9 @@ JsonArray::JsonArray(const JsonArray &another){
 
 
 JsonArray& JsonArray::operator=(const JsonArray& another){
-    val_ = std::vector<JsonValueBase::ptr>(); // 这个过程会自动把原来的值析构掉
-    auto &arr = std::get<std::vector<JsonValueBase::ptr>>(val_);
-    auto &arr1 = std::get<std::vector<JsonValueBase::ptr>>(another.val_);
+    val_ = std::vector<JsonNode::ptr>(); // 这个过程会自动把原来的值析构掉
+    auto &arr = std::get<std::vector<JsonNode::ptr>>(val_);
+    auto &arr1 = std::get<std::vector<JsonNode::ptr>>(another.val_);
     arr.reserve(arr1.size());
     for(auto p : arr1){
         arr.emplace_back(copyFrom(p));
@@ -92,9 +92,9 @@ JsonArray& JsonArray::operator=(const JsonArray& another){
 
 
 JsonObject::JsonObject(const JsonObject& another){
-    val_ = std::map<JsonString, JsonValueBase::ptr>();
-    auto &obj = std::get<std::map<JsonString, JsonValueBase::ptr>>(val_);
-    auto &obj1 = std::get<std::map<JsonString, JsonValueBase::ptr>>(another.val_);
+    val_ = std::map<JsonString, JsonNode::ptr>();
+    auto &obj = std::get<std::map<JsonString, JsonNode::ptr>>(val_);
+    auto &obj1 = std::get<std::map<JsonString, JsonNode::ptr>>(another.val_);
     for(auto [k, v] : obj1){
         auto vp = copyFrom(v);
         obj.insert({k, vp});
@@ -103,9 +103,9 @@ JsonObject::JsonObject(const JsonObject& another){
 }
 
 JsonObject& JsonObject::operator=(const JsonObject& another){
-    val_ = std::map<JsonString, JsonValueBase::ptr>(); // 这个过程会自动把原来的值析构掉
-    auto &obj = std::get<std::map<JsonString, JsonValueBase::ptr>>(val_);
-    auto &obj1 = std::get<std::map<JsonString, JsonValueBase::ptr>>(another.val_);
+    val_ = std::map<JsonString, JsonNode::ptr>(); // 这个过程会自动把原来的值析构掉
+    auto &obj = std::get<std::map<JsonString, JsonNode::ptr>>(val_);
+    auto &obj1 = std::get<std::map<JsonString, JsonNode::ptr>>(another.val_);
     for(auto [k, v] : obj1){
         auto vp = copyFrom(v);
         obj.insert({k, vp});
@@ -153,7 +153,8 @@ std::string JsonString::toString(const PrintFormatter &format, int depth) const{
     res += '"';
 
     std::string_view view(getValue());
-    char utf_str[6] = {0};
+    // char utf_str[6] = {0};
+
     while(!view.empty()){
         // 普通字符
         if(view[0] > 31 && view[0] != '\"' && view[0] != '\\'){
@@ -186,14 +187,16 @@ std::string JsonString::toString(const PrintFormatter &format, int depth) const{
                 break;
             default:
                 // uxxxx
-                if(format.ensureAscii()){
-                    sprintf(utf_str, "u%04x", *(unsigned char *)view.data());
-                    res += utf_str;
-                }
-                else{
-                    res.pop_back();
-                    res += view[0];
-                }
+                // if(format.ensureAscii()){
+                //     sprintf(utf_str, "u%04x", *(unsigned char *)view.data());
+                //     res += utf_str;
+                // }
+                // else{
+                //     res.pop_back();
+                //     res += view[0];
+                // }
+                res.pop_back();
+                res += view[0];
                 break;
             }
         }

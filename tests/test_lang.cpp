@@ -3,6 +3,7 @@
 #include <memory>
 #include <iostream>
 #include <string>
+#include <fstream>
 
 class A{
 public:
@@ -33,8 +34,14 @@ void test_shared_ptr(){
     auto a2 = *p2;
 }
 
+void test_fstream(){
+    std::ofstream ofs("./test_fstream.txt");
+    ofs << "hehe\n";
+}
+
 int main(){
     // test_utf();
-    test_shared_ptr();
+    // test_shared_ptr();
+    test_fstream();
     return 0;
 }

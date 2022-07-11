@@ -9,7 +9,7 @@ namespace json
 
 /* ---------------------------------------------parse--------------------------------------------- */
 
-JsonValueBase::ptr parse_string(std::string_view &str){
+JsonNode::ptr parse_string(std::string_view &str){
     if(str[0] != '"')return nullptr;
     str.remove_prefix(1);
 
@@ -24,24 +24,31 @@ JsonValueBase::ptr parse_string(std::string_view &str){
             {
                 case '\\':
                     output += '\\';
+                    str.remove_prefix(2);
                     break;
                 case 't':
                     output += '\t';
+                    str.remove_prefix(2);
                     break;
                 case 'n':
                     output += '\n';
+                    str.remove_prefix(2);
                     break;
                 case 'r':
                     output += '\r';
+                    str.remove_prefix(2);
                     break;
                 case '0':
                     output += '\0';
+                    str.remove_prefix(2);
                     break;
                 case 'b':
                     output += '\b';
+                    str.remove_prefix(2);
                     break;
                 case 'f':
                     output += '\f';
+                    str.remove_prefix(2);
                     break;
                 // 十六进制值
                 case 'x':
@@ -83,11 +90,11 @@ JsonValueBase::ptr parse_string(std::string_view &str){
 
     JsonString::ptr jstr(std::make_shared<JsonString>(output));
 
-    return std::static_pointer_cast<JsonValueBase>(jstr);
+    return std::static_pointer_cast<JsonNode>(jstr);
 }
 
 
-JsonValueBase::ptr parse_number(std::string_view &str){
+JsonNode::ptr parse_number(std::string_view &str){
     if(!isdigit(str[0]) && str[0] != '-')return nullptr;
 
     bool isInt = true;
@@ -106,7 +113,7 @@ JsonValueBase::ptr parse_number(std::string_view &str){
         return nullptr;
     }
 
-    JsonValueBase::ptr res = nullptr;
+    JsonNode::ptr res = nullptr;
     if(isInt && number <= INT_MAX && number >= INT_MIN){
         res = std::make_shared<JsonInteger>((int)number);
     }
@@ -118,7 +125,7 @@ JsonValueBase::ptr parse_number(std::string_view &str){
 }
 
 
-JsonValueBase::ptr parse_array(std::string_view &str){
+JsonNode::ptr parse_array(std::string_view &str){
     if(str[0] != '[')return nullptr;
     str.remove_prefix(1);
 
@@ -157,11 +164,11 @@ JsonValueBase::ptr parse_array(std::string_view &str){
     }
     str.remove_prefix(1);
 
-    return std::static_pointer_cast<JsonValueBase>(arr);
+    return std::static_pointer_cast<JsonNode>(arr);
 }
 
 
-JsonValueBase::ptr parse_object(std::string_view &str){
+JsonNode::ptr parse_object(std::string_view &str){
     if(str[0] != '{')return nullptr;
     str.remove_prefix(1);
 
@@ -222,11 +229,11 @@ JsonValueBase::ptr parse_object(std::string_view &str){
     }
     str.remove_prefix(1);
 
-    return std::static_pointer_cast<JsonValueBase>(obj);
+    return std::static_pointer_cast<JsonNode>(obj);
 }
 
 
-JsonValueBase::ptr parse_value(std::string_view &str){
+JsonNode::ptr parse_value(std::string_view &str){
     if(str.empty())return nullptr;
 
     if(str.size() && (str[0] == '{')){
@@ -258,51 +265,70 @@ JsonValueBase::ptr parse_value(std::string_view &str){
     }
 }
 
-JsonValueBase::ptr parse(std::string_view &str){
-    str = util::skip_utf8_bom(str);
-    str = util::skip_CtrlAndSpace(str);
-    auto obj = parse_value(str);
+JsonNode::ptr parse(std::string_view str){
+    auto view = str;
+    view = util::skip_utf8_bom(view);
+    view = util::skip_CtrlAndSpace(view);
+    auto obj = parse_value(view);
     return obj;
 }
 
-JsonValueBase::ptr parse(const char *str){
+JsonNode::ptr parse(const char *str){
     std::string_view str_view = str;
     return parse(str_view);
 }
 
-JsonValueBase::ptr parse(const std::string &str){
+JsonNode::ptr parse(const std::string &str){
     std::string_view str_view = str;
     return parse(str_view);
 }
 
-
-/* ---------------------------------------------Json--------------------------------------------- */
-
-bool Json::fromString(std::string_view str){
-    obj_ = json::parse(str);
-    return obj_ != nullptr;
+JsonNode::ptr fromString(const char* str){
+    std::string_view view = str;
+    return parse(view);
 }
 
-bool Json::fromString(const char *str){
-    std::string_view str_view = str;
-    return fromString(str_view);
-}
-
-bool Json::fromString(const std::string &str){
-    std::string_view str_view = str;
-    return fromString(str_view);
+JsonNode::ptr fromString(const std::string &str){
+    std::string_view view = str;
+    return parse(view);
 }
 
 
-bool Json::fromFile(const char *string){
-    reader_.readFile(string);
-    return fromString(reader_.to_stringview());
+JsonNode::ptr fromFile(const char* filePath){
+    JsonBuffer buffer;
+    buffer.readFile(filePath);
+    return parse(buffer.to_stringview());
 }
 
 
-bool Json::fromFile(const std::string &string){
-    reader_.readFile(string.c_str());
-    return fromString(reader_.to_stringview());
+JsonNode::ptr fromFile(const std::string &filePath){
+    JsonBuffer buffer;
+    buffer.readFile(filePath.c_str());
+    return parse(buffer.to_stringview());
+}
+
+
+void toFile(JsonNode::ptr js, const char* filePath, const PrintFormatter &fmter){
+    JsonBuffer buffer(js->toString(fmter));
+    buffer.writeFile(filePath);
+}
+
+
+void toFile(JsonNode::ptr js, const std::string &filePath, const PrintFormatter &fmter){
+    JsonBuffer buffer(js->toString(fmter));
+    buffer.writeFile(filePath.c_str());
+}
+
+void toFile(JsonNode::ptr js, const char* filePath, 
+            JsonFormatType t, int indent)
+{
+    toFile(js, filePath, {t,indent});
+
+}
+void toFile(JsonNode::ptr js, const std::string &filePath, 
+            JsonFormatType t, int indent)
+{
+    toFile(js, filePath, {t,indent});
 }
 
 } // namespace json
